@@ -13,20 +13,57 @@ const AuthPage = () => {
   });
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const { login, signup, signInWithGoogle } = useAuth();
+
+  // Form validation
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.email.trim()) {
+      newErrors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      newErrors.email = 'Please enter a valid email address';
+    }
+
+    if (!formData.password) {
+      newErrors.password = 'Password is required';
+    } else if (formData.password.length < 6) {
+      newErrors.password = 'Password must be at least 6 characters';
+    }
+
+    if (!isLogin && !formData.name.trim()) {
+      newErrors.name = 'Name is required';
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!validateForm()) {
+      return;
+    }
+
     setLoading(true);
+    setErrors({});
 
     try {
+      let result;
       if (isLogin) {
-        await login(formData.email, formData.password);
+        result = await login(formData.email, formData.password);
       } else {
-        await signup(formData.email, formData.password, formData.name);
+        result = await signup(formData.email, formData.password, formData.name);
+      }
+
+      if (!result.success) {
+        // Error is already handled in the auth functions
+        console.error('Auth error:', result.error);
       }
     } catch (error) {
-      console.error('Auth error:', error);
+      console.error('Unexpected auth error:', error);
     } finally {
       setLoading(false);
     }
@@ -34,20 +71,44 @@ const AuthPage = () => {
 
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
+    setErrors({});
+    
     try {
-      await signInWithGoogle();
+      const result = await signInWithGoogle();
+      if (!result.success) {
+        console.error('Google sign-in error:', result.error);
+      }
     } catch (error) {
-      console.error('Google sign-in error:', error);
+      console.error('Unexpected Google sign-in error:', error);
     } finally {
       setGoogleLoading(false);
     }
   };
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+    
+    // Clear error when user starts typing
+    if (errors[name]) {
+      setErrors(prev => ({
+        ...prev,
+        [name]: ''
+      }));
+    }
+  };
+
+  const switchMode = () => {
+    setIsLogin(!isLogin);
     setFormData({
-      ...formData,
-      [e.target.name]: e.target.value
+      name: '',
+      email: '',
+      password: ''
     });
+    setErrors({});
   };
 
   return (
@@ -100,10 +161,16 @@ const AuthPage = () => {
                   name="name"
                   value={formData.name}
                   onChange={handleChange}
-                  required={!isLogin}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
+                  className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white ${
+                    errors.name 
+                      ? 'border-red-500 dark:border-red-500' 
+                      : 'border-gray-300 dark:border-gray-600'
+                  }`}
                   placeholder="Enter your full name"
                 />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.name}</p>
+                )}
               </div>
             )}
 
@@ -116,10 +183,16 @@ const AuthPage = () => {
                 name="email"
                 value={formData.email}
                 onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white ${
+                  errors.email 
+                    ? 'border-red-500 dark:border-red-500' 
+                    : 'border-gray-300 dark:border-gray-600'
+                }`}
                 placeholder="Enter your email"
               />
+              {errors.email && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.email}</p>
+              )}
             </div>
 
             <div>
@@ -131,10 +204,21 @@ const AuthPage = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleChange}
-                required
-                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
+                className={`w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white ${
+                  errors.password 
+                    ? 'border-red-500 dark:border-red-500' 
+                    : 'border-gray-300 dark:border-gray-600'
+                }`}
                 placeholder="Enter your password"
               />
+              {errors.password && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{errors.password}</p>
+              )}
+              {!isLogin && (
+                <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+                  Password must be at least 6 characters long
+                </p>
+              )}
             </div>
 
             <Button
@@ -178,10 +262,27 @@ const AuthPage = () => {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              {isLogin 
-                ? 'New to SmartSpend? Create an account above or sign in with Google' 
-                : 'Already have an account? Switch to login above'
-              }
+              {isLogin ? (
+                <>
+                  New to SmartSpend?{' '}
+                  <button
+                    onClick={switchMode}
+                    className="text-primary hover:text-indigo-700 font-medium"
+                  >
+                    Create an account
+                  </button>
+                </>
+              ) : (
+                <>
+                  Already have an account?{' '}
+                  <button
+                    onClick={switchMode}
+                    className="text-primary hover:text-indigo-700 font-medium"
+                  >
+                    Sign in
+                  </button>
+                </>
+              )}
             </p>
           </div>
         </Card>
