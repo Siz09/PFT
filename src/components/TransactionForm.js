@@ -86,152 +86,155 @@ const TransactionForm = ({ transaction, onClose }) => {
   const availableCategories = formData.type === 'income' ? incomeCategories : categories;
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Type
-        </label>
-        <div className="flex space-x-4">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="type"
-              value="income"
-              checked={formData.type === 'income'}
-              onChange={handleChange}
-              className="mr-2 text-primary focus:ring-primary"
-            />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Income</span>
+    <div className="relative z-50">
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Type
           </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              name="type"
-              value="expense"
-              checked={formData.type === 'expense'}
-              onChange={handleChange}
-              className="mr-2 text-primary focus:ring-primary"
-            />
-            <span className="text-sm text-gray-700 dark:text-gray-300">Expense</span>
-          </label>
+          <div className="flex space-x-4">
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="type"
+                value="income"
+                checked={formData.type === 'income'}
+                onChange={handleChange}
+                className="mr-2 text-primary focus:ring-primary"
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Income</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="type"
+                value="expense"
+                checked={formData.type === 'expense'}
+                onChange={handleChange}
+                className="mr-2 text-primary focus:ring-primary"
+              />
+              <span className="text-sm text-gray-700 dark:text-gray-300">Expense</span>
+            </label>
+          </div>
         </div>
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Amount
-        </label>
-        <input
-          type="number"
-          name="amount"
-          value={formData.amount}
-          onChange={handleChange}
-          step="0.01"
-          min="0"
-          required
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-          placeholder="0.00"
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Description
-        </label>
-        <input
-          type="text"
-          name="description"
-          value={formData.description}
-          onChange={handleChange}
-          required
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-          placeholder="Enter description"
-        />
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-            Category
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Amount
           </label>
-          {suggestedCategory && !formData.category && (
-            <button
-              type="button"
-              onClick={applySuggestedCategory}
-              className="text-xs text-primary hover:text-indigo-700 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded"
-            >
-              Suggest: {suggestedCategory}
-            </button>
-          )}
+          <input
+            type="number"
+            name="amount"
+            value={formData.amount}
+            onChange={handleChange}
+            step="0.01"
+            min="0"
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white relative z-50"
+            placeholder="0.00"
+          />
         </div>
-        <select
-          name="category"
-          value={formData.category}
-          onChange={handleChange}
-          required
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-        >
-          <option value="">Select a category</option>
-          {availableCategories.map(category => (
-            <option key={category} value={category}>{category}</option>
-          ))}
-        </select>
-      </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Date
-        </label>
-        <input
-          type="date"
-          name="date"
-          value={formData.date}
-          onChange={handleChange}
-          required
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-        />
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Description
+          </label>
+          <input
+            type="text"
+            name="description"
+            value={formData.description}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white relative z-50"
+            placeholder="Enter description"
+          />
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Tags (optional)
-        </label>
-        <input
-          type="text"
-          name="tags"
-          value={formData.tags}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-          placeholder="work, personal, urgent (comma separated)"
-        />
-        <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-          Add tags to organize your transactions
-        </p>
-      </div>
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Category
+            </label>
+            {suggestedCategory && !formData.category && (
+              <button
+                type="button"
+                onClick={applySuggestedCategory}
+                className="text-xs text-primary hover:text-indigo-700 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded"
+              >
+                Suggest: {suggestedCategory}
+              </button>
+            )}
+          </div>
+          <select
+            name="category"
+            value={formData.category}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white relative z-50"
+          >
+            <option value="">Select a category</option>
+            {availableCategories.map(category => (
+              <option key={category} value={category}>{category}</option>
+            ))}
+          </select>
+        </div>
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Notes (optional)
-        </label>
-        <textarea
-          name="notes"
-          value={formData.notes}
-          onChange={handleChange}
-          rows={3}
-          className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white"
-          placeholder="Additional notes about this transaction"
-        />
-      </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Date
+          </label>
+          <input
+            type="date"
+            name="date"
+            value={formData.date}
+            onChange={handleChange}
+            required
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white relative z-50"
+            style={{ zIndex: 9999, position: 'relative' }}
+          />
+        </div>
 
-      <div className="flex justify-end space-x-3 pt-4">
-        <Button variant="outline" onClick={onClose}>
-          Cancel
-        </Button>
-        <Button type="submit">
-          {transaction ? 'Update' : 'Add'} Transaction
-        </Button>
-      </div>
-    </form>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Tags (optional)
+          </label>
+          <input
+            type="text"
+            name="tags"
+            value={formData.tags}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white relative z-50"
+            placeholder="work, personal, urgent (comma separated)"
+          />
+          <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+            Add tags to organize your transactions
+          </p>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Notes (optional)
+          </label>
+          <textarea
+            name="notes"
+            value={formData.notes}
+            onChange={handleChange}
+            rows={3}
+            className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-primary dark:bg-gray-700 dark:text-white relative z-50"
+            placeholder="Additional notes about this transaction"
+          />
+        </div>
+
+        <div className="flex justify-end space-x-3 pt-4">
+          <Button variant="outline" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button type="submit">
+            {transaction ? 'Update' : 'Add'} Transaction
+          </Button>
+        </div>
+      </form>
+    </div>
   );
 };
 

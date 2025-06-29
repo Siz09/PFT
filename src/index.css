@@ -83,3 +83,31 @@ code {
     transform: translateX(0);
   }
 }
+
+/* Fix for date input in modals */
+input[type="date"] {
+  position: relative !important;
+  z-index: 9999 !important;
+}
+
+/* Ensure date picker calendar appears above modal */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  z-index: 9999 !important;
+  position: relative !important;
+}
+
+/* Fix for webkit date picker */
+input[type="date"]::-webkit-datetime-edit {
+  position: relative !important;
+  z-index: 9999 !important;
+}
+
+/* Additional modal z-index fixes */
+.modal-content {
+  position: relative !important;
+  z-index: 9999 !important;
+}
+
+.modal-backdrop {
+  z-index: 9998 !important;
+}
