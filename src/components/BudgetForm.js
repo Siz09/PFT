@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useFinance } from '../context/FinanceContext';
-import { categories } from '../data/mockData';
+import { categories } from '../data/categories';
 import Button from './core/Button';
 
 const BudgetForm = ({ budget, onClose }) => {

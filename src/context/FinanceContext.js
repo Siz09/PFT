@@ -1,5 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { mockTransactions, mockBudgets } from '../data/mockData';
+import { 
+  collection, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  doc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  onSnapshot 
+} from 'firebase/firestore';
+import { db } from '../firebase-config';
 import { toast } from 'react-toastify';
 import { useAuth } from './AuthContext';
 
@@ -15,88 +27,178 @@ export const useFinance = () => {
 
 export const FinanceProvider = ({ children }) => {
   const { user } = useAuth();
-  
-  const [transactions, setTransactions] = useState(() => {
-    if (!user) return [];
-    const saved = localStorage.getItem(`transactions_${user.uid}`);
-    return saved ? JSON.parse(saved) : mockTransactions;
-  });
+  const [transactions, setTransactions] = useState([]);
+  const [budgets, setBudgets] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  const [budgets, setBudgets] = useState(() => {
-    if (!user) return [];
-    const saved = localStorage.getItem(`budgets_${user.uid}`);
-    return saved ? JSON.parse(saved) : mockBudgets;
-  });
-
-  // Save to localStorage whenever state changes (user-specific)
+  // Real-time listeners for user data
   useEffect(() => {
-    if (user) {
-      localStorage.setItem(`transactions_${user.uid}`, JSON.stringify(transactions));
-    }
-  }, [transactions, user]);
-
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(`budgets_${user.uid}`, JSON.stringify(budgets));
-    }
-  }, [budgets, user]);
-
-  // Load user-specific data when user changes
-  useEffect(() => {
-    if (user) {
-      const savedTransactions = localStorage.getItem(`transactions_${user.uid}`);
-      const savedBudgets = localStorage.getItem(`budgets_${user.uid}`);
-      
-      setTransactions(savedTransactions ? JSON.parse(savedTransactions) : mockTransactions);
-      setBudgets(savedBudgets ? JSON.parse(savedBudgets) : mockBudgets);
-    } else {
+    if (!user) {
       setTransactions([]);
       setBudgets([]);
+      setLoading(false);
+      return;
     }
+
+    setLoading(true);
+
+    // Set up real-time listener for transactions
+    const transactionsQuery = query(
+      collection(db, 'transactions'),
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribeTransactions = onSnapshot(transactionsQuery, (snapshot) => {
+      const transactionsList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setTransactions(transactionsList);
+    }, (error) => {
+      console.error('Error fetching transactions:', error);
+      toast.error('Failed to load transactions');
+    });
+
+    // Set up real-time listener for budgets
+    const budgetsQuery = query(
+      collection(db, 'budgets'),
+      where('userId', '==', user.uid),
+      orderBy('createdAt', 'desc')
+    );
+
+    const unsubscribeBudgets = onSnapshot(budgetsQuery, (snapshot) => {
+      const budgetsList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+      setBudgets(budgetsList);
+      setLoading(false);
+    }, (error) => {
+      console.error('Error fetching budgets:', error);
+      toast.error('Failed to load budgets');
+      setLoading(false);
+    });
+
+    // Cleanup listeners
+    return () => {
+      unsubscribeTransactions();
+      unsubscribeBudgets();
+    };
   }, [user]);
 
-  const addTransaction = (transaction) => {
-    const newTransaction = {
-      ...transaction,
-      id: Date.now(),
-      date: new Date().toISOString().split('T')[0]
-    };
-    setTransactions(prev => [newTransaction, ...prev]);
-    toast.success('Transaction added successfully!');
+  // Transaction functions
+  const addTransaction = async (transactionData) => {
+    if (!user) {
+      toast.error('Please log in to add transactions');
+      return;
+    }
+
+    try {
+      const docData = {
+        ...transactionData,
+        userId: user.uid,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      await addDoc(collection(db, 'transactions'), docData);
+      toast.success('Transaction added successfully!');
+    } catch (error) {
+      console.error('Error adding transaction:', error);
+      toast.error('Failed to add transaction');
+    }
   };
 
-  const updateTransaction = (id, updatedTransaction) => {
-    setTransactions(prev => 
-      prev.map(t => t.id === id ? { ...t, ...updatedTransaction } : t)
-    );
-    toast.success('Transaction updated successfully!');
+  const updateTransaction = async (id, updatedData) => {
+    if (!user) {
+      toast.error('Please log in to update transactions');
+      return;
+    }
+
+    try {
+      const transactionRef = doc(db, 'transactions', id);
+      await updateDoc(transactionRef, {
+        ...updatedData,
+        updatedAt: new Date()
+      });
+      toast.success('Transaction updated successfully!');
+    } catch (error) {
+      console.error('Error updating transaction:', error);
+      toast.error('Failed to update transaction');
+    }
   };
 
-  const deleteTransaction = (id) => {
-    setTransactions(prev => prev.filter(t => t.id !== id));
-    toast.success('Transaction deleted successfully!');
+  const deleteTransaction = async (id) => {
+    if (!user) {
+      toast.error('Please log in to delete transactions');
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, 'transactions', id));
+      toast.success('Transaction deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting transaction:', error);
+      toast.error('Failed to delete transaction');
+    }
   };
 
-  const addBudget = (budget) => {
-    const newBudget = {
-      ...budget,
-      id: Date.now(),
-      spent: 0
-    };
-    setBudgets(prev => [...prev, newBudget]);
-    toast.success('Budget added successfully!');
+  // Budget functions
+  const addBudget = async (budgetData) => {
+    if (!user) {
+      toast.error('Please log in to add budgets');
+      return;
+    }
+
+    try {
+      const docData = {
+        ...budgetData,
+        userId: user.uid,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      };
+
+      await addDoc(collection(db, 'budgets'), docData);
+      toast.success('Budget added successfully!');
+    } catch (error) {
+      console.error('Error adding budget:', error);
+      toast.error('Failed to add budget');
+    }
   };
 
-  const updateBudget = (id, updatedBudget) => {
-    setBudgets(prev => 
-      prev.map(b => b.id === id ? { ...b, ...updatedBudget } : b)
-    );
-    toast.success('Budget updated successfully!');
+  const updateBudget = async (id, updatedData) => {
+    if (!user) {
+      toast.error('Please log in to update budgets');
+      return;
+    }
+
+    try {
+      const budgetRef = doc(db, 'budgets', id);
+      await updateDoc(budgetRef, {
+        ...updatedData,
+        updatedAt: new Date()
+      });
+      toast.success('Budget updated successfully!');
+    } catch (error) {
+      console.error('Error updating budget:', error);
+      toast.error('Failed to update budget');
+    }
   };
 
-  const deleteBudget = (id) => {
-    setBudgets(prev => prev.filter(b => b.id !== id));
-    toast.success('Budget deleted successfully!');
+  const deleteBudget = async (id) => {
+    if (!user) {
+      toast.error('Please log in to delete budgets');
+      return;
+    }
+
+    try {
+      await deleteDoc(doc(db, 'budgets', id));
+      toast.success('Budget deleted successfully!');
+    } catch (error) {
+      console.error('Error deleting budget:', error);
+      toast.error('Failed to delete budget');
+    }
   };
 
   // Calculate financial summary
@@ -123,7 +225,7 @@ export const FinanceProvider = ({ children }) => {
     return { income, expenses, balance };
   };
 
-  // Calculate budget spending
+  // Calculate budget spending with real-time data
   const calculateBudgetSpending = () => {
     const currentMonth = new Date().getMonth();
     const currentYear = new Date().getFullYear();
@@ -146,6 +248,7 @@ export const FinanceProvider = ({ children }) => {
   const value = {
     transactions,
     budgets: calculateBudgetSpending(),
+    loading,
     addTransaction,
     updateTransaction,
     deleteTransaction,

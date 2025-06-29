@@ -10,7 +10,7 @@ import Button from '../components/core/Button';
 import Card from '../components/core/Card';
 
 const Dashboard = () => {
-  const { transactions, getFinancialSummary } = useFinance();
+  const { transactions, getFinancialSummary, loading } = useFinance();
   const [showTransactionModal, setShowTransactionModal] = useState(false);
   const { income, expenses, balance } = getFinancialSummary();
 
@@ -30,15 +30,36 @@ const Dashboard = () => {
     value
   }));
 
-  // Monthly data for bar chart (mock data for demo)
-  const monthlyData = [
-    { name: 'Jan', income: 4000, expense: 2400 },
-    { name: 'Feb', income: 3000, expense: 1398 },
-    { name: 'Mar', income: 2000, expense: 2800 },
-    { name: 'Apr', income: 2780, expense: 3908 },
-    { name: 'May', income: 1890, expense: 4800 },
-    { name: 'Jun', income: 2390, expense: 3800 }
-  ];
+  // Monthly data for bar chart (calculated from actual transactions)
+  const getMonthlyData = () => {
+    const monthlyData = {};
+    const currentYear = new Date().getFullYear();
+    
+    // Initialize last 6 months
+    for (let i = 5; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthKey = date.toLocaleDateString('en-US', { month: 'short' });
+      monthlyData[monthKey] = { name: monthKey, income: 0, expense: 0 };
+    }
+
+    // Calculate actual data from transactions
+    transactions.forEach(transaction => {
+      const transactionDate = new Date(transaction.date);
+      if (transactionDate.getFullYear() === currentYear) {
+        const monthKey = transactionDate.toLocaleDateString('en-US', { month: 'short' });
+        if (monthlyData[monthKey]) {
+          if (transaction.type === 'income') {
+            monthlyData[monthKey].income += transaction.amount;
+          } else {
+            monthlyData[monthKey].expense += transaction.amount;
+          }
+        }
+      }
+    });
+
+    return Object.values(monthlyData);
+  };
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -60,6 +81,14 @@ const Dashboard = () => {
       }
     }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 
   return (
     <motion.div
@@ -90,7 +119,6 @@ const Dashboard = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
             </svg>
           }
-          trend={{ positive: true, percentage: 12 }}
         />
         <SummaryCard
           title="Total Expenses"
@@ -101,7 +129,6 @@ const Dashboard = () => {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
             </svg>
           }
-          trend={{ positive: false, percentage: 8 }}
         />
         <SummaryCard
           title="Balance"
@@ -118,10 +145,25 @@ const Dashboard = () => {
       {/* Charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <motion.div variants={itemVariants}>
-          <CustomPieChart data={pieChartData} title="Expenses by Category" />
+          {pieChartData.length > 0 ? (
+            <CustomPieChart data={pieChartData} title="Expenses by Category" />
+          ) : (
+            <Card className="p-6">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Expenses by Category</h3>
+              <div className="flex items-center justify-center h-64 text-gray-500 dark:text-gray-400">
+                <div className="text-center">
+                  <svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  <p>No expense data available</p>
+                  <p className="text-sm">Add some transactions to see your spending breakdown</p>
+                </div>
+              </div>
+            </Card>
+          )}
         </motion.div>
         <motion.div variants={itemVariants}>
-          <CustomBarChart data={monthlyData} title="Monthly Income vs Expenses" />
+          <CustomBarChart data={getMonthlyData()} title="Monthly Income vs Expenses" />
         </motion.div>
       </div>
 
@@ -135,37 +177,47 @@ const Dashboard = () => {
             </Button>
           </div>
           <div className="space-y-3">
-            {recentTransactions.map((transaction) => (
-              <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <div className={`p-2 rounded-full ${
-                    transaction.type === 'income' ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'
-                  }`}>
-                    {transaction.type === 'income' ? (
-                      <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
-                      </svg>
-                    ) : (
-                      <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
-                      </svg>
-                    )}
+            {recentTransactions.length > 0 ? (
+              recentTransactions.map((transaction) => (
+                <div key={transaction.id} className="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  <div className="flex items-center space-x-3">
+                    <div className={`p-2 rounded-full ${
+                      transaction.type === 'income' ? 'bg-green-100 dark:bg-green-900' : 'bg-red-100 dark:bg-red-900'
+                    }`}>
+                      {transaction.type === 'income' ? (
+                        <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 11l5-5m0 0l5 5m-5-5v12" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 13l-5 5m0 0l-5-5m5 5V6" />
+                        </svg>
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-white">{transaction.description}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{transaction.category}</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">{transaction.description}</p>
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{transaction.category}</p>
+                  <div className="text-right">
+                    <p className={`font-semibold ${
+                      transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
+                    }`}>
+                      {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{transaction.date}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className={`font-semibold ${
-                    transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
-                  }`}>
-                    {transaction.type === 'income' ? '+' : '-'}${transaction.amount.toLocaleString()}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">{transaction.date}</p>
-                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                <svg className="mx-auto h-12 w-12 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <p>No transactions yet</p>
+                <p className="text-sm">Add your first transaction to get started</p>
               </div>
-            ))}
+            )}
           </div>
         </Card>
       </motion.div>
