@@ -4,7 +4,9 @@ import {
   signInWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
-  updateProfile
+  updateProfile,
+  GoogleAuthProvider,
+  signInWithPopup
 } from "firebase/auth";
 import { auth } from "../firebase-config";
 import { toast } from 'react-toastify';
@@ -54,6 +56,40 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Google Sign-In function
+  const signInWithGoogle = async () => {
+    try {
+      const provider = new GoogleAuthProvider();
+      // Add additional scopes if needed
+      provider.addScope('profile');
+      provider.addScope('email');
+      
+      const result = await signInWithPopup(auth, provider);
+      
+      // Optional: Get additional user info from Google
+      const credential = GoogleAuthProvider.credentialFromResult(result);
+      const token = credential.accessToken;
+      
+      toast.success(`Welcome ${result.user.displayName}!`);
+      return { success: true, user: result.user };
+    } catch (error) {
+      console.error('Google sign-in error:', error);
+      
+      // Handle specific error cases
+      if (error.code === 'auth/popup-closed-by-user') {
+        toast.error('Sign-in cancelled');
+      } else if (error.code === 'auth/popup-blocked') {
+        toast.error('Popup blocked. Please allow popups and try again.');
+      } else if (error.code === 'auth/account-exists-with-different-credential') {
+        toast.error('An account already exists with the same email address but different sign-in credentials.');
+      } else {
+        toast.error('Failed to sign in with Google. Please try again.');
+      }
+      
+      return { success: false, error: error.message };
+    }
+  };
+
   // Logout function
   const logout = async () => {
     try {
@@ -69,6 +105,7 @@ export function AuthProvider({ children }) {
     user,
     signup,
     login,
+    signInWithGoogle,
     logout,
     loading
   };

@@ -4,7 +4,7 @@ A modern, responsive personal finance tracker built with React and Firebase, des
 
 ## 🚀 Features
 
-- **Firebase Authentication**: Secure user registration and login
+- **Firebase Authentication**: Secure user registration and login with email/password and Google Sign-In
 - **Real-time Data**: User-specific financial data with Firebase Firestore
 - **Transaction Management**: Add, edit, delete, and filter transactions
 - **Budget Tracking**: Set budgets and track spending by category
@@ -16,7 +16,7 @@ A modern, responsive personal finance tracker built with React and Firebase, des
 ## 🛠 Tech Stack
 
 - **Frontend**: React 19, JavaScript
-- **Authentication**: Firebase Auth
+- **Authentication**: Firebase Auth (Email/Password + Google Sign-In)
 - **Database**: Firebase Firestore
 - **Styling**: Tailwind CSS
 - **Charts**: Recharts
@@ -57,12 +57,29 @@ const firebaseConfig = {
 };
 ```
 
-### Step 4: Enable Authentication
+### Step 4: Enable Authentication Methods
 1. In Firebase Console, go to Authentication → Sign-in method
 2. Enable "Email/Password" authentication
-3. (Optional) Enable Google sign-in for future use
+3. Enable "Google" sign-in:
+   - Click on Google provider
+   - Enable it
+   - Add your project's domain to authorized domains
+   - Save the configuration
 
-### Step 5: Set up Firestore Database
+### Step 5: Configure Google Sign-In (Important!)
+For Google Sign-In to work properly:
+
+1. **Add Authorized Domains**:
+   - In Firebase Console → Authentication → Sign-in method → Google
+   - Add your domains to "Authorized domains" (e.g., `localhost`, your production domain)
+
+2. **Set up OAuth Consent Screen** (if needed):
+   - Go to [Google Cloud Console](https://console.cloud.google.com/)
+   - Select your Firebase project
+   - Navigate to APIs & Services → OAuth consent screen
+   - Configure the consent screen with your app details
+
+### Step 6: Set up Firestore Database
 1. Go to Firestore Database in Firebase Console
 2. Click "Create database"
 3. Choose "Start in test mode" for development
@@ -95,11 +112,16 @@ const firebaseConfig = {
 ## 📱 Usage
 
 ### Getting Started
-1. **Register**: Create a new account with email and password
+1. **Register**: Create a new account with email/password or Google Sign-In
 2. **Login**: Sign in to access your dashboard
 3. **Add Transactions**: Record your income and expenses
 4. **Set Budgets**: Create monthly budgets for different categories
 5. **Track Progress**: Monitor your spending with visual charts
+
+### Authentication Options
+- **Email/Password**: Traditional signup and login
+- **Google Sign-In**: Quick authentication with your Google account
+- **Secure Sessions**: Stay logged in across browser sessions
 
 ### Key Features
 - **Dashboard**: Overview of your financial health
@@ -110,6 +132,7 @@ const firebaseConfig = {
 ## 🔒 Security Features
 
 - Firebase Authentication for secure user management
+- Google OAuth 2.0 integration
 - User-specific data isolation
 - Secure data transmission with HTTPS
 - Client-side data validation
@@ -157,11 +180,26 @@ The app uses the following data structure:
 1. Build the project: `npm run build`
 2. Deploy the `build` folder to Netlify
 3. Set up environment variables if needed
+4. Add your production domain to Firebase authorized domains
 
 ### Deploy to Vercel
 1. Install Vercel CLI: `npm i -g vercel`
 2. Run: `vercel`
 3. Follow the deployment prompts
+4. Add your production domain to Firebase authorized domains
+
+## 🔧 Troubleshooting
+
+### Google Sign-In Issues
+- **Popup blocked**: Ensure popups are allowed for your domain
+- **Unauthorized domain**: Add your domain to Firebase authorized domains
+- **OAuth errors**: Check Google Cloud Console OAuth consent screen setup
+
+### Common Issues
+- Check Firebase Console for authentication/database errors
+- Ensure Firebase configuration is correct
+- Verify Firebase rules allow read/write access
+- Check browser console for error messages
 
 ## 🤝 Contributing
 
@@ -180,18 +218,20 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 If you encounter any issues:
 1. Check the Firebase Console for authentication/database errors
 2. Ensure your Firebase configuration is correct
-3. Check browser console for error messages
-4. Verify Firebase rules allow read/write access
+3. Verify Google Sign-In is properly configured
+4. Check browser console for error messages
+5. Ensure authorized domains are set up correctly
 
 ## 🔮 Future Enhancements
 
-- [ ] Google Sign-In integration
-- [ ] Data synchronization across devices
+- [ ] ✅ Google Sign-In integration (Completed!)
+- [ ] Data synchronization across devices with Firestore
 - [ ] Advanced reporting and analytics
 - [ ] Recurring transaction support
 - [ ] Bill reminders and notifications
 - [ ] Multi-currency support
 - [ ] Data import from bank statements
+- [ ] Social login with Facebook/Apple
 
 ---
 
