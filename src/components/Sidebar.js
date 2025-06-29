@@ -80,16 +80,11 @@ const Sidebar = ({ isOpen, onClose }) => {
       </AnimatePresence>
 
       {/* Sidebar */}
-      <motion.div
-        initial={false}
-        animate={{
-          x: isOpen ? 0 : '-100%'
-        }}
-        transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform md:translate-x-0 md:static md:inset-0 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } md:translate-x-0 transition duration-200 ease-in-out md:transition-none`}
-      >
+      <div className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 shadow-lg transform transition-transform duration-200 ease-in-out
+        md:translate-x-0 md:static md:inset-0 md:z-auto
+        ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}
+      `}>
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
           <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Menu</h2>
           <button
@@ -124,7 +119,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             ))}
           </ul>
         </nav>
-      </motion.div>
+      </div>
     </>
   );
 };
