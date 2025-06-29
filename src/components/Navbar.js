@@ -1,9 +1,9 @@
 import React from 'react';
-import { useFinance } from '../context/FinanceContext';
+import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
 
 const Navbar = ({ onMenuClick }) => {
-  const { user, logout } = useFinance();
+  const { user, logout } = useAuth();
   const { isDark, toggleTheme } = useTheme();
 
   return (
@@ -42,7 +42,9 @@ const Navbar = ({ onMenuClick }) => {
 
             <div className="flex items-center space-x-3">
               <div className="text-sm">
-                <p className="text-gray-900 dark:text-white font-medium">{user?.name}</p>
+                <p className="text-gray-900 dark:text-white font-medium">
+                  {user?.displayName || user?.email?.split('@')[0]}
+                </p>
                 <p className="text-gray-500 dark:text-gray-400">{user?.email}</p>
               </div>
               <button

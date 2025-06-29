@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useFinance } from '../context/FinanceContext';
+import { useAuth } from '../context/AuthContext';
 import Button from '../components/core/Button';
 import Card from '../components/core/Card';
 
@@ -12,7 +12,7 @@ const AuthPage = () => {
     password: ''
   });
   const [loading, setLoading] = useState(false);
-  const { login, register } = useFinance();
+  const { login, signup } = useAuth();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -22,7 +22,7 @@ const AuthPage = () => {
       if (isLogin) {
         await login(formData.email, formData.password);
       } else {
-        await register(formData.name, formData.email, formData.password);
+        await signup(formData.email, formData.password, formData.name);
       }
     } catch (error) {
       console.error('Auth error:', error);
@@ -166,7 +166,7 @@ const AuthPage = () => {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Demo credentials: any email and password
+              {isLogin ? 'Demo mode: Use any email and password' : 'Create your account to get started'}
             </p>
           </div>
         </Card>

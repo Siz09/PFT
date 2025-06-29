@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { mockTransactions, mockBudgets } from '../data/mockData';
 import { toast } from 'react-toastify';
+import { useAuth } from './AuthContext';
 
 const FinanceContext = createContext();
 
@@ -13,82 +14,46 @@ export const useFinance = () => {
 };
 
 export const FinanceProvider = ({ children }) => {
-  const [isAuthenticated, setIsAuthenticated] = useState(() => {
-    return localStorage.getItem('isAuthenticated') === 'true';
-  });
+  const { user } = useAuth();
   
-  const [user, setUser] = useState(() => {
-    const saved = localStorage.getItem('user');
-    return saved ? JSON.parse(saved) : null;
-  });
-
   const [transactions, setTransactions] = useState(() => {
-    const saved = localStorage.getItem('transactions');
+    if (!user) return [];
+    const saved = localStorage.getItem(`transactions_${user.uid}`);
     return saved ? JSON.parse(saved) : mockTransactions;
   });
 
   const [budgets, setBudgets] = useState(() => {
-    const saved = localStorage.getItem('budgets');
+    if (!user) return [];
+    const saved = localStorage.getItem(`budgets_${user.uid}`);
     return saved ? JSON.parse(saved) : mockBudgets;
   });
 
-  // Save to localStorage whenever state changes
+  // Save to localStorage whenever state changes (user-specific)
   useEffect(() => {
-    localStorage.setItem('isAuthenticated', isAuthenticated);
-  }, [isAuthenticated]);
+    if (user) {
+      localStorage.setItem(`transactions_${user.uid}`, JSON.stringify(transactions));
+    }
+  }, [transactions, user]);
 
   useEffect(() => {
-    localStorage.setItem('user', JSON.stringify(user));
+    if (user) {
+      localStorage.setItem(`budgets_${user.uid}`, JSON.stringify(budgets));
+    }
+  }, [budgets, user]);
+
+  // Load user-specific data when user changes
+  useEffect(() => {
+    if (user) {
+      const savedTransactions = localStorage.getItem(`transactions_${user.uid}`);
+      const savedBudgets = localStorage.getItem(`budgets_${user.uid}`);
+      
+      setTransactions(savedTransactions ? JSON.parse(savedTransactions) : mockTransactions);
+      setBudgets(savedBudgets ? JSON.parse(savedBudgets) : mockBudgets);
+    } else {
+      setTransactions([]);
+      setBudgets([]);
+    }
   }, [user]);
-
-  useEffect(() => {
-    localStorage.setItem('transactions', JSON.stringify(transactions));
-  }, [transactions]);
-
-  useEffect(() => {
-    localStorage.setItem('budgets', JSON.stringify(budgets));
-  }, [budgets]);
-
-  const login = (email, password) => {
-    // Mock authentication
-    if (email && password) {
-      const userData = {
-        id: 1,
-        name: email.split('@')[0],
-        email: email
-      };
-      setUser(userData);
-      setIsAuthenticated(true);
-      toast.success('Login successful!');
-      return true;
-    }
-    toast.error('Invalid credentials');
-    return false;
-  };
-
-  const register = (name, email, password) => {
-    // Mock registration
-    if (name && email && password) {
-      const userData = {
-        id: 1,
-        name: name,
-        email: email
-      };
-      setUser(userData);
-      setIsAuthenticated(true);
-      toast.success('Registration successful!');
-      return true;
-    }
-    toast.error('Please fill all fields');
-    return false;
-  };
-
-  const logout = () => {
-    setUser(null);
-    setIsAuthenticated(false);
-    localStorage.clear();
-    toast.success('Logged out successfully');
-  };
 
   const addTransaction = (transaction) => {
     const newTransaction = {
@@ -179,13 +144,8 @@ export const FinanceProvider = ({ children }) => {
   };
 
   const value = {
-    isAuthenticated,
-    user,
     transactions,
     budgets: calculateBudgetSpending(),
-    login,
-    register,
-    logout,
     addTransaction,
     updateTransaction,
     deleteTransaction,

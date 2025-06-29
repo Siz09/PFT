@@ -1,19 +1,19 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useTheme } from '../context/ThemeContext';
-import { useFinance } from '../context/FinanceContext';
+import { useAuth } from '../context/AuthContext';
 import Card from '../components/core/Card';
 import Button from '../components/core/Button';
 
 const Settings = () => {
   const { isDark, toggleTheme } = useTheme();
-  const { user, logout } = useFinance();
+  const { user, logout } = useAuth();
 
   const handleExportData = () => {
     // Mock export functionality
     const data = {
-      transactions: JSON.parse(localStorage.getItem('transactions') || '[]'),
-      budgets: JSON.parse(localStorage.getItem('budgets') || '[]')
+      transactions: JSON.parse(localStorage.getItem(`transactions_${user.uid}`) || '[]'),
+      budgets: JSON.parse(localStorage.getItem(`budgets_${user.uid}`) || '[]')
     };
     
     const dataStr = JSON.stringify(data, null, 2);
@@ -29,8 +29,8 @@ const Settings = () => {
 
   const handleClearData = () => {
     if (window.confirm('Are you sure you want to clear all data? This action cannot be undone.')) {
-      localStorage.removeItem('transactions');
-      localStorage.removeItem('budgets');
+      localStorage.removeItem(`transactions_${user.uid}`);
+      localStorage.removeItem(`budgets_${user.uid}`);
       window.location.reload();
     }
   };
@@ -80,7 +80,7 @@ const Settings = () => {
               </label>
               <input
                 type="text"
-                value={user?.name || ''}
+                value={user?.displayName || user?.email?.split('@')[0] || ''}
                 disabled
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
               />
@@ -96,8 +96,19 @@ const Settings = () => {
                 className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
               />
             </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                User ID
+              </label>
+              <input
+                type="text"
+                value={user?.uid || ''}
+                disabled
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 text-xs"
+              />
+            </div>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Profile editing is not available in demo mode.
+              Profile editing will be available in a future update.
             </p>
           </div>
         </Card>
@@ -126,46 +137,6 @@ const Settings = () => {
                 }`}
               />
             </button>
-          </div>
-        </Card>
-      </motion.div>
-
-      {/* Notifications Settings */}
-      <motion.div variants={itemVariants}>
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">Notifications</h3>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-gray-900 dark:text-white">Budget Alerts</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Get notified when you exceed your budget
-                </p>
-              </div>
-              <button
-                className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                disabled
-              >
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" />
-              </button>
-            </div>
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="font-medium text-gray-900 dark:text-white">Transaction Reminders</p>
-                <p className="text-sm text-gray-500 dark:text-gray-400">
-                  Remind me to log my transactions
-                </p>
-              </div>
-              <button
-                className="relative inline-flex h-6 w-11 items-center rounded-full bg-gray-200 transition-colors focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                disabled
-              >
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" />
-              </button>
-            </div>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Notification settings are not available in demo mode.
-            </p>
           </div>
         </Card>
       </motion.div>
@@ -229,7 +200,7 @@ const Settings = () => {
               SmartSpend is a personal finance tracker designed for students and young professionals.
             </p>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Built with React, Tailwind CSS, and modern web technologies.
+              Built with React, Firebase, Tailwind CSS, and modern web technologies.
             </p>
           </div>
         </Card>
