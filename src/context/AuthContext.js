@@ -6,9 +6,12 @@ import {
   onAuthStateChanged,
   updateProfile,
   GoogleAuthProvider,
-  signInWithPopup
+  signInWithPopup,
+  sendEmailVerification,
+  sendPasswordResetEmail
 } from "firebase/auth";
-import { auth } from "../firebase-config";
+import { doc, setDoc, getDoc } from "firebase/firestore";
+import { auth, db } from "../firebase-config";
 import { toast } from 'react-toastify';
 
 const AuthContext = createContext();
@@ -19,17 +22,51 @@ export function AuthProvider({ children }) {
 
   // Listen to auth state changes
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        // Create or update user document in Firestore
+        await createUserDocument(currentUser);
+      }
       setUser(currentUser);
       setLoading(false);
     });
     return () => unsubscribe();
   }, []);
 
-  // Signup function with validation
+  // Create user document in Firestore
+  const createUserDocument = async (user) => {
+    if (!user) return;
+    
+    const userRef = doc(db, 'users', user.uid);
+    const userSnap = await getDoc(userRef);
+    
+    if (!userSnap.exists()) {
+      const { displayName, email, photoURL, uid } = user;
+      const createdAt = new Date();
+      
+      try {
+        await setDoc(userRef, {
+          displayName,
+          email,
+          photoURL,
+          uid,
+          createdAt,
+          preferences: {
+            theme: 'system',
+            currency: 'USD',
+            dashboardLayout: ['summary', 'charts', 'recent-transactions'],
+            emailNotifications: true
+          }
+        });
+      } catch (error) {
+        console.error('Error creating user document:', error);
+      }
+    }
+  };
+
+  // Signup function with email verification
   const signup = async (email, password, name) => {
     try {
-      // Validate inputs
       if (!email || !password || !name) {
         toast.error('All fields are required');
         return { success: false, error: 'All fields are required' };
@@ -40,7 +77,6 @@ export function AuthProvider({ children }) {
         return { success: false, error: 'Password must be at least 6 characters' };
       }
 
-      // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         toast.error('Please enter a valid email address');
@@ -53,9 +89,12 @@ export function AuthProvider({ children }) {
       await updateProfile(result.user, {
         displayName: name.trim()
       });
+
+      // Send email verification
+      await sendEmailVerification(result.user);
       
-      toast.success('Account created successfully!');
-      return { success: true, user: result.user };
+      toast.success('Account created! Please check your email to verify your account.');
+      return { success: true, user: result.user, needsVerification: true };
     } catch (error) {
       console.error('Signup error:', error);
       
@@ -86,16 +125,14 @@ export function AuthProvider({ children }) {
     }
   };
 
-  // Login function with validation
+  // Login function with email verification check
   const login = async (email, password) => {
     try {
-      // Validate inputs
       if (!email || !password) {
         toast.error('Email and password are required');
         return { success: false, error: 'Email and password are required' };
       }
 
-      // Email validation
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
       if (!emailRegex.test(email)) {
         toast.error('Please enter a valid email address');
@@ -103,6 +140,13 @@ export function AuthProvider({ children }) {
       }
 
       const result = await signInWithEmailAndPassword(auth, email.trim(), password);
+      
+      // Check if email is verified
+      if (!result.user.emailVerified) {
+        toast.warning('Please verify your email before accessing the dashboard.');
+        return { success: true, user: result.user, needsVerification: true };
+      }
+      
       toast.success('Login successful!');
       return { success: true, user: result.user };
     } catch (error) {
@@ -141,12 +185,8 @@ export function AuthProvider({ children }) {
   const signInWithGoogle = async () => {
     try {
       const provider = new GoogleAuthProvider();
-      
-      // Configure the provider
       provider.addScope('profile');
       provider.addScope('email');
-      
-      // Set custom parameters
       provider.setCustomParameters({
         prompt: 'select_account'
       });
@@ -194,6 +234,63 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Password reset function
+  const resetPassword = async (email) => {
+    try {
+      if (!email) {
+        toast.error('Email is required');
+        return { success: false, error: 'Email is required' };
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        toast.error('Please enter a valid email address');
+        return { success: false, error: 'Invalid email format' };
+      }
+
+      await sendPasswordResetEmail(auth, email.trim());
+      toast.success('Password reset email sent! Check your inbox.');
+      return { success: true };
+    } catch (error) {
+      console.error('Password reset error:', error);
+      
+      let errorMessage = 'Failed to send password reset email';
+      
+      switch (error.code) {
+        case 'auth/user-not-found':
+          errorMessage = 'No account found with this email address.';
+          break;
+        case 'auth/invalid-email':
+          errorMessage = 'Please enter a valid email address';
+          break;
+        case 'auth/too-many-requests':
+          errorMessage = 'Too many requests. Please try again later.';
+          break;
+        default:
+          errorMessage = error.message || 'An unexpected error occurred';
+      }
+      
+      toast.error(errorMessage);
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  // Resend email verification
+  const resendVerification = async () => {
+    try {
+      if (user && !user.emailVerified) {
+        await sendEmailVerification(user);
+        toast.success('Verification email sent! Check your inbox.');
+        return { success: true };
+      }
+      return { success: false, error: 'User not found or already verified' };
+    } catch (error) {
+      console.error('Resend verification error:', error);
+      toast.error('Failed to send verification email');
+      return { success: false, error: error.message };
+    }
+  };
+
   // Logout function
   const logout = async () => {
     try {
@@ -210,6 +307,8 @@ export function AuthProvider({ children }) {
     signup,
     login,
     signInWithGoogle,
+    resetPassword,
+    resendVerification,
     logout,
     loading
   };

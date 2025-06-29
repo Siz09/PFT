@@ -7,9 +7,12 @@ import AuthPage from './pages/AuthPage';
 import Dashboard from './pages/Dashboard';
 import Transactions from './pages/Transactions';
 import Budget from './pages/Budget';
+import Goals from './pages/Goals';
+import Reports from './pages/Reports';
 import Settings from './pages/Settings';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
+import EmailVerificationGuard from './components/EmailVerificationGuard';
 import Onboarding from './components/Onboarding';
 
 function App() {
@@ -20,7 +23,7 @@ function App() {
 
   // Show onboarding for new users
   useEffect(() => {
-    if (user && !hasSeenOnboarding) {
+    if (user && user.emailVerified && !hasSeenOnboarding) {
       setShowOnboarding(true);
     }
   }, [user, hasSeenOnboarding]);
@@ -41,12 +44,22 @@ function App() {
             />
             <Route 
               path="/" 
-              element={user ? <Layout /> : <Navigate to="/auth" />}
+              element={
+                user ? (
+                  <EmailVerificationGuard>
+                    <Layout />
+                  </EmailVerificationGuard>
+                ) : (
+                  <Navigate to="/auth" />
+                )
+              }
             >
               <Route index element={<Navigate to="/dashboard" />} />
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="transactions" element={<Transactions />} />
               <Route path="budget" element={<Budget />} />
+              <Route path="goals" element={<Goals />} />
+              <Route path="reports" element={<Reports />} />
               <Route path="settings" element={<Settings />} />
             </Route>
             <Route path="*" element={<Navigate to={user ? "/dashboard" : "/auth"} />} />
