@@ -191,7 +191,8 @@ export const FinanceProvider = ({ children }) => {
       
       toast.success('Transaction added successfully!');
     } catch (error) {
-      // Revert optimistic update
+      // Revert optimistic update on error
+      const tempId = Date.now().toString();
       setTransactions(prev => prev.filter(t => t.id !== tempId));
       console.error('Error adding transaction:', error);
       toast.error('Failed to add transaction');
