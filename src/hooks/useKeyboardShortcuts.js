@@ -9,30 +9,39 @@ export const useKeyboardShortcuts = (shortcuts) => {
       const { key, ctrlKey, metaKey, shiftKey, altKey } = event;
       const modifierKey = ctrlKey || metaKey;
 
-      shortcuts.forEach(({ keys, action, preventDefault = true }) => {
-        // Safety check for keys
-        if (!keys || typeof keys !== 'string') return;
-        
-        const keyParts = keys.split('+').reverse();
-        const [mainKey, ...modifiers] = keyParts;
-        
-        // Safety check for mainKey
-        if (!mainKey) return;
-        
-        const hasCtrl = modifiers.includes('ctrl') || modifiers.includes('cmd');
-        const hasShift = modifiers.includes('shift');
-        const hasAlt = modifiers.includes('alt');
+      // Safety check for shortcuts array
+      if (!Array.isArray(shortcuts)) return;
 
-        if (
-          key.toLowerCase() === mainKey.toLowerCase() &&
-          hasCtrl === modifierKey &&
-          hasShift === shiftKey &&
-          hasAlt === altKey
-        ) {
-          if (preventDefault) {
-            event.preventDefault();
+      shortcuts.forEach(({ keys, action, preventDefault = true }) => {
+        // Safety check for keys and action
+        if (!keys || typeof keys !== 'string' || typeof action !== 'function') return;
+        
+        try {
+          const keyParts = keys.split('+').filter(Boolean); // Remove empty strings
+          if (keyParts.length === 0) return;
+          
+          const [mainKey, ...modifiers] = keyParts.reverse();
+          
+          // Safety check for mainKey
+          if (!mainKey || typeof mainKey !== 'string') return;
+          
+          const hasCtrl = modifiers.some(mod => mod && (mod.toLowerCase() === 'ctrl' || mod.toLowerCase() === 'cmd'));
+          const hasShift = modifiers.some(mod => mod && mod.toLowerCase() === 'shift');
+          const hasAlt = modifiers.some(mod => mod && mod.toLowerCase() === 'alt');
+
+          if (
+            key.toLowerCase() === mainKey.toLowerCase() &&
+            hasCtrl === modifierKey &&
+            hasShift === shiftKey &&
+            hasAlt === altKey
+          ) {
+            if (preventDefault) {
+              event.preventDefault();
+            }
+            action(event);
           }
-          action(event);
+        } catch (error) {
+          console.warn('Error in keyboard shortcut handler:', error);
         }
       });
     };
