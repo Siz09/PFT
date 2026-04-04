@@ -1,28 +1,38 @@
+// Core domain types for SmartSpend
+// Expanded in Week 2 when DB schema is implemented
+
 export type TransactionType = 'income' | 'expense';
 
 export interface Transaction {
   id: string;
-  amount: number;
   type: TransactionType;
-  category: string;
+  amount: number;
   description: string;
-  date: string;
-  tags?: string[];
+  categoryId: string;
+  date: string; // ISO 8601
+  merchant?: string;
   notes?: string;
-  isRecurring?: boolean;
+  receiptImagePath?: string;
+  isRecurring: boolean;
   recurringId?: string;
-  createdAt: Date;
-  updatedAt?: Date;
-  userId?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  icon: string;
+  color: string;
+  isDefault: boolean;
 }
 
 export interface Budget {
   id: string;
-  category: string;
+  categoryId: string;
   amount: number;
-  spent: number;
-  createdAt: Date;
-  userId?: string;
+  period: 'weekly' | 'monthly';
+  startDate: string;
 }
 
 export interface Goal {
@@ -30,67 +40,19 @@ export interface Goal {
   name: string;
   targetAmount: number;
   currentAmount: number;
-  deadline?: string | null;
-  category?: string;
-  description?: string;
-  createdAt: Date;
-  userId?: string;
+  targetDate: string;
+  createdAt: string;
 }
 
-export interface RecurringTransaction {
+export interface AISummary {
   id: string;
-  amount: number;
-  type: TransactionType;
-  category: string;
-  description: string;
-  frequency: 'daily' | 'weekly' | 'monthly' | 'yearly';
-  nextDate: Date;
-  isActive: boolean;
-  tags?: string[];
-  createdAt: Date;
-  userId?: string;
-}
-
-export interface Category {
-  id: string;
-  name: string;
-  userId?: string;
-}
-
-export interface FinancialSummary {
-  income: number;
-  expenses: number;
-  balance: number;
-}
-
-export type Theme = 'light' | 'dark' | 'system';
-
-export interface ChartDataPoint {
-  name: string;
-  value: number;
-}
-
-export interface MonthlyDataPoint {
-  name: string;
-  income: number;
-  expense: number;
-}
-
-export type ChartType = 'bar' | 'line' | 'pie';
-
-export interface TransactionFilters {
-  search: string;
-  type: TransactionType | '';
-  category: string;
-  dateFrom: string;
-  dateTo: string;
-  amountMin: string;
-  amountMax: string;
-}
-
-export interface AuthResult {
-  success: boolean;
-  user?: import('firebase/auth').User;
-  error?: string;
-  needsVerification?: boolean;
+  periodType: 'weekly' | 'monthly';
+  periodStart: string;
+  periodEnd: string;
+  overview: string;
+  topCategories: Array<{ category: string; amount: number; percentage: number }>;
+  anomalies: string[];
+  tips: string[];
+  savingsRate: number;
+  generatedAt: string;
 }
