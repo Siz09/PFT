@@ -50,7 +50,7 @@ export interface AISummary {
   periodStart: string;
   periodEnd: string;
   overview: string;
-  topCategories: Array<{ category: string; amount: number; percentage: number }>;
+  topCategories: Array<{ categoryName: string; amount: number; percentage: number }>;
   anomalies: string[];
   tips: string[];
   savingsRate: number;

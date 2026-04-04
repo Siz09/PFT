@@ -10,6 +10,11 @@ config.watchFolders = (config.watchFolders ?? []).filter(
 );
 const tauriTarget = path.join(__dirname, 'src-tauri', 'target');
 const escapedTauriTarget = tauriTarget.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-config.resolver.blockList = [new RegExp(`${escapedTauriTarget}.*`)];
+const existingBlockList = Array.isArray(config.resolver.blockList)
+  ? config.resolver.blockList
+  : config.resolver.blockList
+    ? [config.resolver.blockList]
+    : [];
+config.resolver.blockList = [...existingBlockList, new RegExp(`${escapedTauriTarget}.*`)];
 
 module.exports = withNativeWind(config, { input: './global.css' });

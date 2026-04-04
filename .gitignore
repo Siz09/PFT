@@ -8,9 +8,13 @@ node_modules/
 dist/
 web-build/
 
-# Native builds
-ios/
-android/
+# Native builds — ignore generated artifacts, keep source/config
+ios/Pods/
+ios/build/
+ios/*.xcworkspace/xcuserdata/
+android/build/
+android/.gradle/
+android/app/build/
 *.jks
 *.p8
 *.p12
