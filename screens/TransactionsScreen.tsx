@@ -8,7 +8,7 @@ export default function TransactionsScreen() {
         <Text style={styles.title} accessibilityRole="header">
           Transactions
         </Text>
-        <Text style={styles.subtitle}>Full transaction list with search and filter — Week 4</Text>
+        <Text style={styles.subtitle}>Full transaction list with search and filter</Text>
       </View>
     </SafeAreaView>
   );

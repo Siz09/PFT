@@ -8,7 +8,7 @@ export default function BudgetScreen() {
         <Text style={styles.title} accessibilityRole="header">
           Budget
         </Text>
-        <Text style={styles.subtitle}>Category budgets and savings goals — Week 4 / Phase 3</Text>
+        <Text style={styles.subtitle}>Category budgets and savings goals</Text>
       </View>
     </SafeAreaView>
   );

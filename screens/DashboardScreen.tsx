@@ -8,9 +8,7 @@ export default function DashboardScreen() {
         <Text style={styles.title} accessibilityRole="header">
           Dashboard
         </Text>
-        <Text style={styles.subtitle}>
-          Balance summary, recent transactions, and AI insights — Week 4
-        </Text>
+        <Text style={styles.subtitle}>Balance summary, recent transactions, and AI insights</Text>
       </View>
     </SafeAreaView>
   );

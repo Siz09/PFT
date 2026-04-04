@@ -2,6 +2,7 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import type { RootStackParamList, TabParamList } from './types';
 import DashboardScreen from '../screens/DashboardScreen';
@@ -28,6 +29,7 @@ function TabIcon({ name, focused }: { name: string; focused: boolean }) {
 }
 
 function MainTabs() {
+  const insets = useSafeAreaInsets();
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
@@ -39,8 +41,7 @@ function MainTabs() {
           backgroundColor: '#FFFFFF',
           borderTopWidth: 1,
           borderTopColor: '#E5E7EB',
-          height: 60,
-          paddingBottom: 8,
+          paddingBottom: insets.bottom + 4,
         },
       })}
     >

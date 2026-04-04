@@ -8,7 +8,7 @@ export default function ReportsScreen() {
         <Text style={styles.title} accessibilityRole="header">
           Reports
         </Text>
-        <Text style={styles.subtitle}>Charts, AI summaries, and export — Phase 3 (Week 11)</Text>
+        <Text style={styles.subtitle}>Charts, AI summaries, and spending insights</Text>
       </View>
     </SafeAreaView>
   );

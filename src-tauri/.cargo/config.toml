@@ -1,5 +1,5 @@
 [build]
 # Move Cargo output outside the project root so Metro's file watcher
 # doesn't crash on Rust temp files during compilation.
-# Resolves to D:\vscode\smartspend-target (sibling of the PFT project dir).
+# Resolves to D:\vscode\smartspend-target (sibling of the smartspend project dir).
 target-dir = "../../smartspend-target"

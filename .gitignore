@@ -39,7 +39,6 @@ out/
 # Tauri
 src-tauri/target/
 src-tauri/WixTools/
-../smartspend-target/
 
 # Logs
 npm-debug.log*

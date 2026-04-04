@@ -12,7 +12,7 @@ export default function ScanScreen() {
           Scan Receipt
         </Text>
         <Text style={styles.subtitle}>
-          OCR receipt scanning via Claude API — Phase 2 (Week 5–6)
+          Scan a receipt to automatically capture the amount, date, and merchant
         </Text>
       </View>
     </SafeAreaView>

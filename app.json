@@ -11,7 +11,7 @@
       "resizeMode": "contain",
       "backgroundColor": "#0F172A"
     },
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": ["assets/images/**", "assets/fonts/**", "assets/*.png", "assets/*.jpg"],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.smartspend.app"

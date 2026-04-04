@@ -8,7 +8,7 @@ export default function SettingsScreen() {
         <Text style={styles.title} accessibilityRole="header">
           Settings
         </Text>
-        <Text style={styles.subtitle}>Currency, theme, profile name — Week 4</Text>
+        <Text style={styles.subtitle}>Currency, theme, and profile name</Text>
       </View>
     </SafeAreaView>
   );

@@ -8,8 +8,8 @@ const config = getDefaultConfig(__dirname);
 config.watchFolders = (config.watchFolders ?? []).filter(
   (f) => !f.includes('src-tauri'),
 );
-config.resolver.blockList = [
-  new RegExp(path.join(__dirname, 'src-tauri', 'target').replace(/\\/g, '\\\\')),
-];
+const tauriTarget = path.join(__dirname, 'src-tauri', 'target');
+const escapedTauriTarget = tauriTarget.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+config.resolver.blockList = [new RegExp(`${escapedTauriTarget}.*`)];
 
 module.exports = withNativeWind(config, { input: './global.css' });
