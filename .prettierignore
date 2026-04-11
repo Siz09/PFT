@@ -1,5 +1,0 @@
-node_modules/
-.expo/
-coverage/
-src-tauri/
-*.lock
