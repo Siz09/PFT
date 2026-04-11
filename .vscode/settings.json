@@ -1,0 +1,6 @@
+{
+  "css.lint.unknownAtRules": "ignore",
+  "tailwindCSS.experimental.configFile": {
+    "apps/mobile/**": "apps/mobile/tailwind.config.js"
+  }
+}

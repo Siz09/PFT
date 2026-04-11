@@ -1,0 +1,15 @@
+node_modules/
+build/
+dist/
+coverage/
+.DS_Store
+*.log
+.env*
+!.env.example
+
+# Tauri / Rust
+apps/web/src-tauri/target/
+
+# Expo
+apps/mobile/.expo/
+apps/mobile/expo-env.d.ts
