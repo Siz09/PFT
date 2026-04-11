@@ -2,5 +2,7 @@
   "css.lint.unknownAtRules": "ignore",
   "tailwindCSS.experimental.configFile": {
     "apps/mobile/**": "apps/mobile/tailwind.config.js"
-  }
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "typescript.enablePromptUseWorkspaceTsdk": true
 }

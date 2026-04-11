@@ -11,16 +11,19 @@
     ],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
+    "resolvePackageJsonExports": true,
     "isolatedModules": true,
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react-jsx",
+    "baseUrl": ".",
     "paths": {
-      "@/*": [
-        "./*"
-      ]
+      "@/*": ["./*"],
+      "@tailwindcss/vite": ["../../node_modules/@tailwindcss/vite/dist/index.d.mts"],
+      "@vitejs/plugin-react": ["../../node_modules/@vitejs/plugin-react/dist/index.d.ts"]
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  }
+  },
+  "include": ["src", "vite.config.ts"]
 }
