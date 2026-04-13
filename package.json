@@ -1,20 +1,12 @@
 {
-  "name": "smartspend",
+  "name": "smartspend-mobile",
   "private": true,
-  "version": "0.0.0",
-  "workspaces": [
-    "apps/*"
-  ],
+  "version": "1.0.0",
   "scripts": {
-    "dev": "npm run dev --workspace=@smartspend/web",
-    "dev:web": "npm run dev --workspace=@smartspend/web",
-    "dev:mobile": "npm run start --workspace=@smartspend/mobile",
-    "dev:desktop": "npm run tauri:dev --workspace=@smartspend/web",
-    "build": "npm run build --workspace=@smartspend/web",
-    "build:web": "npm run build --workspace=@smartspend/web",
-    "build:desktop": "npm run tauri:build --workspace=@smartspend/web",
-    "preview": "npm run preview --workspace=@smartspend/web",
-    "lint": "npm run lint --workspaces --if-present",
-    "clean": "npm run clean --workspace=@smartspend/web --if-present"
+    "dev:mobile": "npm --prefix apps/mobile run start",
+    "android": "npm --prefix apps/mobile run android",
+    "ios": "npm --prefix apps/mobile run ios",
+    "lint:mobile": "npm --prefix apps/mobile run lint",
+    "test:mobile": "npm --prefix apps/mobile run test"
   }
 }

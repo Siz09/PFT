@@ -1,73 +1,46 @@
 import './global.css';
 
-import { NavigationContainer } from '@react-navigation/native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { useEffect, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 
-const Tab = createBottomTabNavigator();
-
-function PlaceholderScreen({ title }: { title: string }) {
-  return (
-    <View style={styles.placeholder}>
-      <Text style={styles.placeholderTitle}>{title}</Text>
-      <Text style={styles.placeholderHint}>SmartSpend · Phase 1 shell</Text>
-    </View>
-  );
-}
-
-const styles = StyleSheet.create({
-  placeholder: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ffffff',
-  },
-  placeholderTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#171717',
-  },
-  placeholderHint: {
-    marginTop: 8,
-    fontSize: 14,
-    color: '#737373',
-  },
-});
-
-function HomeScreen() {
-  return <PlaceholderScreen title="Home" />;
-}
-function HistoryScreen() {
-  return <PlaceholderScreen title="History" />;
-}
-function ScanScreen() {
-  return <PlaceholderScreen title="Scan" />;
-}
-function BudgetScreen() {
-  return <PlaceholderScreen title="Budget" />;
-}
-function SettingsScreen() {
-  return <PlaceholderScreen title="Settings" />;
-}
+import { databaseManager } from './src/db/DatabaseManager';
+import { AppNavigator } from './src/navigation/AppNavigator';
 
 export default function App() {
+  const [isReady, setIsReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    databaseManager
+      .getDatabase()
+      .then(() => setIsReady(true))
+      .catch((dbError) => {
+        const message = dbError instanceof Error ? dbError.message : 'Unknown database error';
+        setError(message);
+      });
+  }, []);
+
+  if (error) {
+    return (
+      <View className="flex-1 items-center justify-center bg-neutral-50 px-6">
+        <Text className="text-lg font-semibold text-red-600">Database init failed</Text>
+        <Text className="mt-2 text-center text-sm text-neutral-700">{error}</Text>
+      </View>
+    );
+  }
+
+  if (!isReady) {
+    return (
+      <View className="flex-1 items-center justify-center bg-neutral-50">
+        <Text className="text-base font-medium text-neutral-700">Preparing local database...</Text>
+      </View>
+    );
+  }
+
   return (
     <>
-      <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={{
-            headerTitleAlign: 'center',
-            tabBarLabelStyle: { fontSize: 11, fontWeight: '600' },
-          }}
-        >
-          <Tab.Screen name="Home" component={HomeScreen} />
-          <Tab.Screen name="History" component={HistoryScreen} />
-          <Tab.Screen name="Scan" component={ScanScreen} />
-          <Tab.Screen name="Budget" component={BudgetScreen} />
-          <Tab.Screen name="Settings" component={SettingsScreen} />
-        </Tab.Navigator>
-      </NavigationContainer>
+      <AppNavigator />
       <StatusBar style="auto" />
     </>
   );
