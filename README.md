@@ -1,55 +1,42 @@
-# SmartSpend Mobile
+# SmartSpend
 
-Personal finance tracker focused on a single mobile app (React Native + Expo).
+Web-first personal finance tracker.
 
 ## Project Layout
 
-- [`apps/mobile`](apps/mobile): Main app (Expo SDK 54 + React Native + NativeWind + SQLite)
-- [`apps/web`](apps/web): UI design reference only (not required to run mobile app)
+- [`apps/next-web`](apps/next-web): Web-first app (Next.js + Supabase + OCR API routes)
+- [`apps/next-web/legacy`](apps/next-web/legacy): copied legacy source snapshots from old mobile/web apps for reference
 
 ## Prerequisites
 
 - Node.js `20.19.4` (recommended)
-- Expo Go on phone (SDK 54)
-- Android Studio only if you want emulator workflows
-
-## Install
-
-```bash
-npm install
-cd apps/mobile
-npm install
-```
-
-## Run (LAN on local network)
-
-```powershell
-nvm use 20.19.4
-cd apps/mobile
-$env:REACT_NATIVE_PACKAGER_HOSTNAME="YOUR_LOCAL_IP"
-npx expo start --lan --clear --port 8090
-```
-
-```bash
-nvm use 20.19.4
-cd apps/mobile
-export REACT_NATIVE_PACKAGER_HOSTNAME="YOUR_LOCAL_IP"
-npx expo start --lan --clear --port 8090
-```
-
-Replace `YOUR_LOCAL_IP` with machine LAN IP:
-
-- Windows (PowerShell): `ipconfig`
-- macOS/Linux: `ifconfig` or `ip addr`
-
-Scan QR from Expo Go.
 
 ## Root Convenience Scripts
 
 From repo root:
 
-- `npm run dev:mobile`
-- `npm run android`
-- `npm run ios`
-- `npm run lint:mobile`
-- `npm run test:mobile`
+- `npm run dev:web`
+- `npm run lint:web`
+- `npm run build:web`
+
+## Web Setup (Next.js + Supabase)
+
+```bash
+cd apps/next-web
+npm install
+cp .env.example .env.local
+```
+
+Set values in `apps/next-web/.env.local`:
+
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `OPENAI_API_KEY` (optional, needed for online OCR route)
+
+Run web app:
+
+```bash
+cd apps/next-web
+npm run dev
+```
