@@ -1,188 +1,176 @@
 # Implementation Plan
-## SmartSpend — 14-Week Development Roadmap
-**Version 1.0 | March 2026**
+## SmartSpend — Development Roadmap (Web-First)
+**Version 2.0 | April 2026**
 
 ---
 
 ## 1. Overview
 
-The implementation is divided into 4 phases over 14 weeks. Each phase ends with a working, testable milestone. Treat each phase boundary as a soft release candidate — if a phase slips, later phases are de-scoped rather than delayed, as launch date is fixed.
+Primary product is **web** (`apps/next-web`): Next.js App Router, **Supabase** (Postgres) as system of record, shared domain logic in `packages/domain`. Legacy Expo mobile and Vite reference UIs were removed from the repo; optional snapshots live under `apps/next-web/legacy/` for reference only.
+
+Phases stay time-boxed. If a phase slips, **de-scope later phases**, not launch date.
 
 | Phase | Name | Weeks | Exit Criteria |
 |---|---|---|---|
-| 1 | Foundation | 1–4 | App launches on iOS, Android, and desktop with SQLite working and manual transaction entry functional |
-| 2 | OCR & Scanning | 5–8 | Receipt scanning returns accurate pre-filled transactions; offline Tesseract fallback working |
-| 3 | AI Summaries | 9–11 | Weekly and monthly summaries generated and displayed; push notifications delivered |
-| 4 | Polish & Launch | 12–14 | All charts rendering; export working; app store submissions accepted; performance targets met |
+| 1 | Foundation | 1–4 | Web app runs locally and in deploy preview; Supabase schema + categories seeded; manual transaction CRUD via API/UI shell |
+| 2 | OCR & Scanning | 5–8 | Receipt image upload → server OCR → editable review → save transaction with confidence; accuracy QA on real receipts |
+| 3 | AI Summaries | 9–11 | Weekly/monthly summaries generated and shown in UI; notification path defined (email/push TBD) |
+| 4 | Polish & Launch | 12–14 | Charts and export working; accessibility and performance pass; production deploy + help docs |
 
 ---
 
 ## 2. Phase 1 — Foundation (Weeks 1–4)
 
-### Week 1: Project Setup
+### Week 1: Project setup
 
-1. Initialise React Native + Expo project with TypeScript
-2. Configure Tauri project sharing the same React source
-3. Set up Tailwind CSS / NativeWind
-4. Configure ESLint, Prettier, and Husky pre-commit hooks
-5. Set up GitHub Actions: lint + test on PR
-6. Create placeholder screens for all 5 navigation tabs
+1. Next.js (App Router) + TypeScript in `apps/next-web`
+2. Tailwind CSS; base shell (tabs / navigation pattern)
+3. ESLint; root scripts for `lint:web` / `build:web`
+4. GitHub Actions: lint + build on PR (recommended)
+5. Environment: Supabase URL + anon + service role; OpenAI key for OCR route (optional until Phase 2)
 
-### Week 2: Database & Core Services
+### Week 2: Database & core services
 
-1. Implement `DatabaseManager` with SQLite init and migration runner
-2. Write schema migrations: transactions, categories, budgets, goals, ai_summaries
-3. Seed default categories (Food, Transport, Health, Entertainment, etc.)
-4. Implement `TransactionRepository` (raw SQL layer)
-5. Implement `TransactionService` (business logic layer)
-6. Write unit tests for TransactionService
+1. Supabase migrations: `categories`, `transactions` (FK to categories), indexes
+2. Seed default categories (Food, Transport, Health, Entertainment, Utilities, etc.)
+3. `TransactionService` + types in `packages/domain`; `SupabaseTransactionRepository` in Next server layer
+4. API routes: list/create transactions; list categories
+5. Unit tests for domain services (`packages/domain`)
 
-### Week 3: State & Navigation
+### Week 3: State & navigation
 
-1. Set up Zustand stores: `SettingsStore`, `UIStore`
-2. Implement React Navigation structure (Stack + Bottom Tabs)
-3. Implement desktop Tauri sidebar navigation
-4. Build core UI components: Button, Card, Modal, Input, Badge, AmountDisplay
-5. Implement theme system (light/dark/system)
+1. Client state for tabs and forms (Zustand or React state — pick one pattern and stick to it)
+2. Responsive layout: mobile-first bottom nav + desktop-friendly main area
+3. Core UI primitives (buttons, inputs, cards) aligned with design reference (`legacy` snapshot)
+4. Theme: light/dark/system (optional stretch)
 
-### Week 4: Transaction Entry & Dashboard
+### Week 4: Transaction entry & dashboard
 
-1. Build `TransactionForm` with all fields and validation
-2. Build `TransactionCard` component
-3. Implement Transactions screen with list, search, and basic filter
-4. Build Dashboard screen: balance summary, recent transactions
-5. Implement Settings screen (currency, theme, profile name)
-6. Phase 1 integration test and bug fix sprint
+1. Manual add-transaction flow (all required fields + validation)
+2. Transactions list with search/filter (minimum: type, category, date range)
+3. Dashboard: balance summary + recent transactions (from Supabase, not mocks)
+4. Settings shell (currency, profile — persist in Supabase `profiles` or app config table when added)
+5. Phase 1 integration test pass + bugfix sprint
 
 ---
 
 ## 3. Phase 2 — OCR & Scanning (Weeks 5–8)
 
-### Week 5: Camera Integration
+### Week 5: Capture & upload
 
-1. Integrate Expo Camera with document edge detection guide overlay
-2. Implement image compression pipeline (max 1024px, JPEG 85%)
-3. Build `ScannerView` component with capture and gallery import
-4. Implement PDF import via Expo DocumentPicker
-5. Handle camera permission flow with graceful denial state
+1. Browser capture (`capture` on file input) + file upload fallback
+2. Client-side image pipeline: max width 1024px, JPEG ~85% before upload
+3. `ScannerView` UX: choose image → processing state → review
+4. PDF: optional later (vision models differ; track as follow-up)
+5. Clear errors for permission denial, unsupported type, oversize file
 
-### Week 6: Claude OCR Pipeline
+### Week 6: OCR pipeline (server)
 
-1. Implement Claude API client (typed, with retry and timeout)
-2. Implement `OCRService.scanWithClaude()` with JSON response parsing
-3. Write OCR system prompt and test against 20+ sample receipts
-4. Implement confidence scoring and field validation
-5. Build `OCRReviewForm` (pre-filled, editable, confidence indicator)
+1. OpenAI vision (or equivalent) via **server-only** API route — no secrets in browser
+2. `OCRService` in `packages/domain`: JSON parse, validation, confidence scoring
+3. OCR system/user prompts versioned in code (`ocrPrompt.ts`)
+4. Regression tests on parser + synthetic corpus; expand to real images in Week 8
 
-### Week 7: Tesseract Fallback & Flow Polish
+### Week 7: Flow polish
 
-1. Integrate Tesseract.js as offline OCR fallback
-2. Implement connectivity detection (online/offline switching)
-3. Build loading animation for OCR processing screen
-4. Complete full scan-to-save flow end to end
-5. Handle edge cases: blurry image, no text detected, network failure
+1. Loading and error states on scan screen
+2. End-to-end scan → review → save (writes `ocr_confidence`, receipt reference)
+3. Optional: Supabase **Storage** bucket for receipt blobs; DB stores path/URL (filename-only is a temporary approach)
+4. Edge cases: no text, bad JSON, API timeout, rate limits — user sees actionable message + manual entry fallback
 
 ### Week 8: Scanning QA
 
-1. Test OCR accuracy across receipt types: supermarket, restaurant, utility bills, fuel
-2. Run OCR test suite; tune prompt until >90% field accuracy achieved
-3. User test scanning flow with 5 target users
-4. Fix usability issues identified in user tests
-5. Phase 2 regression test — ensure Phase 1 features unbroken
+1. Accuracy across receipt types (supermarket, restaurant, utilities, fuel)
+2. Tune prompts/parsing until **>90%** field accuracy on a fixed **real** test set (not only synthetic JSON)
+3. Short user tests (target 5 users) on web
+4. Regression: Phase 1 flows still pass
+
+**Note:** On-device/offline OCR (ML Kit, etc.) is **out of scope** for the web primary path; revisit only if a native client returns.
 
 ---
 
 ## 4. Phase 3 — AI Summaries (Weeks 9–11)
 
-### Week 9: Summary Service
+### Week 9: Summary service
 
-1. Implement `AIService.buildSummaryPayload()` — aggregate transactions to JSON
-2. Write and test weekly summary prompt template
-3. Write and test monthly summary prompt template
-4. Implement `AIService.generateWeeklySummary()` and `generateMonthlySummary()`
-5. Store summaries in `ai_summaries` table
+1. `AIService.buildSummaryPayload()` — aggregate transactions to structured JSON
+2. Weekly and monthly prompt templates + tests
+3. `generateWeeklySummary()` / `generateMonthlySummary()` (server-side)
+4. Store rows in `ai_summaries` (add migration when implementing)
 
-### Week 10: Summary UI & Scheduler
+### Week 10: Summary UI & scheduling
 
-1. Build `SummaryCard` component (teaser on Dashboard)
-2. Build full AI Summary screen (overview, categories, anomalies, tips)
-3. Build `InsightList` component for tips display
-4. Implement `SummaryJob` scheduler (Expo Background Fetch + Tauri cron sidecar)
-5. Implement `NotificationService` for summary-ready push notifications
+1. `SummaryCard` on dashboard; full summary screen (overview, categories, anomalies, tips)
+2. `InsightList` for tips
+3. Scheduling: Supabase **pg_cron**, Edge Function, or external worker — pick one; document choice
+4. Notifications: web push and/or email (mobile push only if native app exists)
 
-### Week 11: Budget Alerts & Reports
+### Week 11: Budget alerts & reports
 
-1. Implement `BudgetService.getStatus()` with per-category calculations
-2. Build Budget screen with `BudgetCard` and `GoalCard` components
-3. Implement budget alert notifications via `NotificationService`
-4. Build Reports screen with chart type toggle and date range selector
-5. Integrate Victory Native (mobile) and Recharts (desktop) chart libraries
-6. Implement pie, bar, and line charts with correct data binding
+1. `BudgetService.getStatus()` per category
+2. Budget UI: `BudgetCard`, `GoalCard`
+3. Budget alerts (in-app first; email/push optional)
+4. Reports screen: date range + chart type
+5. Charts: **Recharts** (web). Victory Native only applies if RN client ships later.
 
 ---
 
 ## 5. Phase 4 — Polish & Launch (Weeks 12–14)
 
-### Week 12: Advanced Features & Export
+### Week 12: Advanced features & export
 
-1. Implement `ExportService` (CSV and JSON export with filtered data)
-2. Implement `RecurringJob` for auto-creating recurring transactions
-3. Build recurring transaction UI in `TransactionForm`
-4. Implement bulk select, edit, and delete on Transactions screen
-5. Add advanced filters: date range, amount range, multi-category
+1. `ExportService`: CSV + JSON with filters
+2. Recurring transactions (job + UI)
+3. Bulk select / edit / delete on transactions
+4. Advanced filters (amount range, multi-category)
 
-### Week 13: Performance, Security & Accessibility
+### Week 13: Performance, security & accessibility
 
-1. Profile and optimise SQLite queries — add missing indexes
-2. Implement SQLCipher DB encryption with secure key management
-3. Implement biometric lock screen
-4. Conduct accessibility audit (VoiceOver, TalkBack, keyboard nav)
-5. Fix all WCAG 2.1 AA failures
-6. Performance pass: achieve all targets from TRD Section 7
+1. Postgres query review — indexes, explain plans for hot paths
+2. **RLS** on user-owned data; service role only for admin/server tasks; document threat model
+3. Optional: row-level encryption or field encryption for sensitive columns (if required by threat model)
+4. Accessibility: keyboard nav, focus order, labels on interactive controls
+5. Performance: LCP, API latency, bundle size (see TRD targets)
 
-### Week 14: QA, Submission & Documentation
+### Week 14: QA & launch
 
-1. Full regression test across iOS, Android, Windows, macOS
-2. Fix all P1 and P2 bugs
-3. Prepare App Store screenshots and metadata
-4. Prepare Google Play Store listing and screenshots
-5. Submit to Apple TestFlight for review
-6. Submit to Google Play internal testing track
-7. Publish desktop binaries to GitHub Releases
-8. Write user-facing help documentation
+1. Full regression on **supported browsers** + mobile browsers
+2. Fix P1/P2 bugs
+3. Production deploy (e.g. Vercel) + env configuration
+4. User-facing help / FAQ
+5. App store / Play Store **only if** native apps are in scope again; otherwise omit
 
 ---
 
-## 6. Task Priority Matrix
+## 6. Task priority matrix
 
 | Priority | Definition | Examples |
 |---|---|---|
-| P0 — Blocker | App cannot ship without this | SQLite working, manual transaction entry, app launching on all platforms |
-| P1 — Critical | Core user value; de-scoping breaks the proposition | OCR scanning, AI summaries, budget tracking |
-| P2 — Important | Strongly enhances experience | Charts, bulk operations, export, recurring transactions |
-| P3 — Nice to have | Can ship without; backlog for v1.1 | Optional cloud backup, summary sharing, home screen widget |
+| P0 — Blocker | Cannot ship web MVP | Supabase connected; auth/data isolation story; manual transactions |
+| P1 — Critical | Core value | OCR scan pipeline; summaries; budgets |
+| P2 — Important | Strong UX lift | Charts, bulk ops, export, recurring |
+| P3 — Nice to have | v1.1 | Native apps, widgets, social sharing |
 
 ---
 
-## 7. Dependencies & Risks
+## 7. Dependencies & risks
 
 | Dependency | Risk | Mitigation |
 |---|---|---|
-| Claude API availability | API downtime blocks OCR and summaries | Tesseract fallback for OCR; cache last summary; retry queue |
-| Expo SDK compatibility | Native modules may conflict across SDK versions | Pin SDK version; test on physical devices from Week 1 |
-| Tauri 2 stability | Desktop builds may have OS-specific issues | Prioritise macOS first; Windows second; Linux third |
-| Apple review process | Review rejection adds 1–2 weeks | Submit to TestFlight by Week 13; address any issues in buffer time |
-| OCR accuracy targets | Tesseract may not reach 90% on all receipt types | Rely primarily on Claude; Tesseract is offline-only fallback |
+| OpenAI (or other vision API) | Downtime / rate limits | Retries, timeouts, clear errors; manual entry always available |
+| Supabase | RLS misconfiguration | Test with anon key; least-privilege policies |
+| OCR accuracy | Messy receipts | Human review step; iterative prompt + parser tuning |
+| Scope creep | Rebuilding old mobile stack | Web-first until MVP proven; native later if needed |
 
 ---
 
-## 8. Definition of Done
+## 8. Definition of done
 
-A feature is considered done when:
+A feature is done when:
 
-- [ ] Code is reviewed and merged to `main`
-- [ ] Unit tests pass (Jest) with >80% coverage on the changed service
-- [ ] Feature works on at least one iOS device, one Android device, and the desktop build
-- [ ] Accessibility label added to all new interactive elements
-- [ ] No P0 or P1 bugs introduced in regression test
-- [ ] Design review completed against Frontend Guideline
+- [ ] Code reviewed and merged to `main`
+- [ ] Unit tests pass for changed domain logic (`packages/domain` where applicable)
+- [ ] Feature verified in **production-like** env (staging or preview) with real Supabase project
+- [ ] New UI controls have accessible names / labels where applicable
+- [ ] No new P0/P1 bugs in regression pass for touched flows
+- [ ] Design aligned with frontend guideline (see `docs/FRONTEND_GUIDLINE.md` if present)

@@ -4,5 +4,6 @@
     "apps/mobile/**": "apps/mobile/tailwind.config.js"
   },
   "typescript.tsdk": "node_modules/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "postman.settings.dotenv-detection-notification-visibility": false
 }
