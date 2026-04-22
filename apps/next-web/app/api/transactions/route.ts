@@ -80,8 +80,14 @@ const toFilters = (request: Request): TransactionQueryFilters => {
     search: searchParams.get("search") ?? undefined,
     type,
     categoryId: searchParams.get("categoryId") ?? undefined,
+    categoryIds: (searchParams.get("categoryIds") ?? "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean),
     fromDate: searchParams.get("fromDate") ?? undefined,
     toDate: searchParams.get("toDate") ?? undefined,
+    minAmountCents: parsePositiveInt(searchParams.get("minAmountCents")),
+    maxAmountCents: parsePositiveInt(searchParams.get("maxAmountCents")),
     limit: parsePositiveInt(searchParams.get("limit")),
     offset: parsePositiveInt(searchParams.get("offset")),
   };

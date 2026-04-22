@@ -135,5 +135,5 @@ Manual expense tracking is tedious, leading to inconsistent adoption. Existing f
 |---|---|---|
 | Phase 1 — Foundation | 4 weeks | Project setup, navigation shell, SQLite integration, manual transaction entry |
 | Phase 2 — OCR & Scanning | 4 weeks | Camera integration, OCR pipeline, data parser, correction UI |
-| Phase 3 — AI Summaries | 3 weeks | Claude API integration, weekly/monthly digest, insight cards |
+| Phase 3 — AI Summaries | 3 weeks | OpenAI API integration, weekly/monthly digest, insight cards |
 | Phase 4 — Polish & Launch | 3 weeks | Budget/goals, charts, export, performance tuning, app store submission |

@@ -46,8 +46,11 @@ export type TransactionQueryFilters = {
   search?: string;
   type?: TransactionType;
   categoryId?: string;
+  categoryIds?: string[];
   fromDate?: string;
   toDate?: string;
+  minAmountCents?: number;
+  maxAmountCents?: number;
   limit?: number;
   offset?: number;
 };

@@ -6,7 +6,7 @@
 
 ## 1. Architecture Philosophy
 
-SmartSpend has no traditional backend server. All persistence happens in on-device SQLite. External network calls are limited to two endpoints: the Claude API for OCR and AI summaries, and optionally Supabase for encrypted backup. This approach eliminates server costs, removes data breach risk at the server level, and enables full offline functionality.
+SmartSpend has no traditional backend server. All persistence happens in on-device SQLite. External network calls are limited to two endpoints: the OpenAI API for OCR and AI summaries, and optionally Supabase for encrypted backup. This approach eliminates server costs, removes data breach risk at the server level, and enables full offline functionality.
 
 ---
 
@@ -87,8 +87,8 @@ Each migration file exports: `{ version: number, up: (db) => void, down: (db) =>
 
 | Method | Input | Output | Notes |
 |---|---|---|---|
-| scan | imageUri: string | OCRResult | Entry point; chooses Claude or Tesseract based on connectivity |
-| scanWithClaude | base64Image: string | OCRResult | Sends to Claude API; parses JSON response |
+| scan | imageUri: string | OCRResult | Entry point; chooses OpenAI or Tesseract based on connectivity |
+| scanWithOpenAI | base64Image: string | OCRResult | Sends to OpenAI API; parses JSON response |
 | scanWithTesseract | imageUri: string | OCRResult | Local fallback; lower accuracy on messy receipts |
 | validateResult | OCRResult | ValidationReport | Checks confidence, required fields present |
 
@@ -96,19 +96,19 @@ Each migration file exports: `{ version: number, up: (db) => void, down: (db) =>
 
 | Method | Input | Output | Notes |
 |---|---|---|---|
-| generateWeeklySummary | weekStart: Date | AISummary | Queries 7-day window; calls Claude; stores result |
-| generateMonthlySummary | month: string | AISummary | Queries full month; calls Claude; stores result |
+| generateWeeklySummary | weekStart: Date | AISummary | Queries 7-day window; calls OpenAI; stores result |
+| generateMonthlySummary | month: string | AISummary | Queries full month; calls OpenAI; stores result |
 | getSummary | period | AISummary \| null | Retrieves cached summary from DB |
 | buildSummaryPayload | transactions[] | SummaryPayload | Aggregates data before sending to API |
 
 ---
 
-## 5. Claude API Integration
+## 5. OpenAI API Integration
 
 ### 5.1 Client Configuration
 
-- Base URL: `https://api.anthropic.com/v1/messages`
-- Model: `claude-sonnet-4-6`
+- Base URL: `https://api.openai.com/v1/chat/completions`
+- Model: `gpt-4o-mini`
 - Max tokens: 1024 (OCR), 2048 (summaries)
 - Timeout: 10 seconds with 2 automatic retries (exponential backoff)
 - API key: read from platform secure storage at call time, never cached in memory
@@ -165,14 +165,14 @@ Each migration file exports: `{ version: number, up: (db) => void, down: (db) =>
 ```
 User captures receipt
   → OCRService.scan()
-  → [Online: Claude API | Offline: Tesseract.js]
+  → [Online: OpenAI API | Offline: Tesseract.js]
   → OCRResult
   → Review UI (user confirms / corrects)
   → TransactionService.create()
   → SQLite (transactions table)
   → SummaryJob reads transactions
   → AIService.generateSummary()
-  → Claude API
+  → OpenAI API
   → ai_summaries table
   → NotificationService
   → User push notification

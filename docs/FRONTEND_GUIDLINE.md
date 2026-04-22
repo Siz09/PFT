@@ -86,7 +86,7 @@
 | ScannerView | Camera viewfinder with document detection overlay |
 | OCRReviewForm | Pre-filled correction form shown after OCR processing |
 | SummaryCard | AI summary teaser card with period, key stat, and expand CTA |
-| InsightList | Numbered list of Claude-generated tips with icons |
+| InsightList | Numbered list of OpenAI-generated tips with icons |
 | BudgetCard | Category budget with progress bar, amounts, and alert badge |
 | GoalCard | Savings goal card with circular progress, amounts, deadline |
 | CategoryPicker | Scrollable category selector with icons and colours |

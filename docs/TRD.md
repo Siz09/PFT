@@ -6,7 +6,7 @@
 
 ## 1. System Architecture Overview
 
-SmartSpend has no traditional backend server. All persistence happens in on-device SQLite. External network calls are limited to two endpoints: the Claude API for OCR and AI summaries, and optionally Supabase for encrypted backup. This approach eliminates server costs, removes data breach risk at the server level, and enables full offline functionality.
+SmartSpend has no traditional backend server. All persistence happens in on-device SQLite. External network calls are limited to two endpoints: the OpenAI API for OCR and AI summaries, and optionally Supabase for encrypted backup. This approach eliminates server costs, removes data breach risk at the server level, and enables full offline functionality.
 
 ---
 
@@ -21,8 +21,8 @@ SmartSpend has no traditional backend server. All persistence happens in on-devi
 | Local DB | SQLite via expo-sqlite (mobile) / better-sqlite3 (desktop) | ACID transactions, mature, local |
 | File storage | Expo FileSystem / Node.js fs | Platform-native encrypted local file storage |
 | OCR (offline) | Tesseract.js 5 | Fully local OCR, no API required |
-| OCR + AI | Claude API (claude-sonnet-4-6) | Superior accuracy on varied receipt formats |
-| AI summaries | Claude API (claude-sonnet-4-6) | Structured JSON insights from transaction data |
+| OCR + AI | OpenAI API (`gpt-4o-mini`) | Strong OCR + structured JSON extraction on varied receipt formats |
+| AI summaries | OpenAI API (`gpt-4o-mini`) | Structured JSON insights from transaction data |
 | Navigation | React Navigation 6 | Standard, well-documented, supports deep linking |
 | Charts | Victory Native / Recharts | Platform-appropriate chart libraries |
 | Language | TypeScript 5 | Type safety across entire codebase |
@@ -92,7 +92,7 @@ SmartSpend has no traditional backend server. All persistence happens in on-devi
 | period_type | TEXT | NOT NULL CHECK IN ('weekly','monthly') | Summary period |
 | period_start | TEXT | NOT NULL | ISO 8601 date |
 | period_end | TEXT | NOT NULL | ISO 8601 date |
-| summary_json | TEXT | NOT NULL | Full Claude response as JSON |
+| summary_json | TEXT | NOT NULL | Full OpenAI response as JSON |
 | generated_at | TEXT | NOT NULL | ISO 8601 timestamp |
 
 ---
@@ -103,7 +103,7 @@ SmartSpend has no traditional backend server. All persistence happens in on-devi
 
 1. User captures or imports receipt image
 2. Image compressed to max 1024px wide, converted to base64
-3. POST to Claude API with vision prompt requesting JSON output
+3. POST to OpenAI API with vision prompt requesting JSON output
 4. Response parsed: `{ merchant, amount, date, category, confidence }`
 5. If confidence < 0.75, show correction UI before saving
 6. Confirmed transaction written to SQLite
@@ -125,7 +125,7 @@ Extract: { "merchant": string, "amount": number, "date": "YYYY-MM-DD", "category
 1. Scheduler triggers weekly (Sunday 20:00 local) and monthly (1st of month, 08:00)
 2. Query SQLite for all transactions in the period
 3. Aggregate: total income, total expense, per-category breakdown
-4. Send structured data (NOT raw text) to Claude API
+4. Send structured data (NOT raw text) to OpenAI API
 5. Response: `{ overview, top_categories, anomalies, tips, savings_rate }`
 6. Store in ai_summaries table; push notification to user
 
@@ -147,7 +147,7 @@ You are a personal finance advisor. Given structured spending data, generate a c
 | TransactionService | delete(id) | Soft-delete transaction |
 | TransactionService | query(filters) | Return paginated, filtered results |
 | OCRService | scan(imageUri) | Run OCR pipeline, return extracted data |
-| AIService | generateSummary(period) | Trigger Claude summary for date range |
+| AIService | generateSummary(period) | Trigger OpenAI summary for date range |
 | AIService | getSummary(period) | Retrieve stored summary from DB |
 | BudgetService | getStatus(month) | Current spend vs budget per category |
 | GoalService | updateProgress(id, amount) | Add to goal current_amount |
@@ -159,9 +159,9 @@ You are a personal finance advisor. Given structured spending data, generate a c
 
 - SQLite database encrypted with SQLCipher (AES-256-CBC)
 - Encryption key derived from device biometric / PIN via platform secure enclave
-- Claude API key stored in platform secure storage (Keychain / Keystore / OS credential store)
+- OpenAI API key stored in platform secure storage (Keychain / Keystore / OS credential store)
 - No financial data transmitted except: (a) image bytes for OCR, (b) aggregated numbers for summaries
-- HTTPS with certificate pinning for all Claude API calls
+- HTTPS with certificate pinning for all OpenAI API calls
 - Optional cloud backup encrypted client-side before transmission
 
 ---
@@ -171,7 +171,7 @@ You are a personal finance advisor. Given structured spending data, generate a c
 | Operation | Target | Notes |
 |---|---|---|
 | App cold start | < 2 seconds | Splash screen during DB init |
-| OCR processing | < 5 seconds | Includes network round-trip to Claude |
+| OCR processing | < 5 seconds | Includes network round-trip to OpenAI |
 | Transaction query (1000 rows) | < 100ms | Indexed by date, category |
 | Chart render | < 300ms | Aggregation done in background thread |
 | Summary generation | < 8 seconds | Background job, non-blocking |

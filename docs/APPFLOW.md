@@ -70,7 +70,7 @@ Bottom tab bar (mobile) / Left sidebar (desktop) with 5 destinations:
 
 **Step 3 — Processing**
 - Full-screen loading animation with "Reading your receipt..." message
-- Image sent to Claude API (or Tesseract.js if offline)
+- Image sent to OpenAI API (or Tesseract.js if offline)
 
 **Step 4 — Review & Confirm**
 - Pre-filled form: merchant, amount, date, category (all editable)
@@ -150,7 +150,7 @@ Bottom tab bar (mobile) / Left sidebar (desktop) with 5 destinations:
 ## 11. AI Summary Screen (Full View)
 
 - Period header: "Week of Mar 10–16" or "March 2026"
-- Overview paragraph (2–3 sentences from Claude)
+- Overview paragraph (2–3 sentences from OpenAI)
 - Top spending categories: ranked list with amounts and change vs prior period
 - Anomalies: flagged unusual transactions with explanation
 - Tips: max 3 numbered, actionable suggestions

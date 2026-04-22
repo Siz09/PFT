@@ -131,11 +131,20 @@ export class SupabaseTransactionRepository implements TransactionRepositoryPort 
     if (filters.categoryId) {
       query = query.eq("category_id", filters.categoryId);
     }
+    if (filters.categoryIds && filters.categoryIds.length > 0) {
+      query = query.in("category_id", filters.categoryIds);
+    }
     if (filters.fromDate) {
       query = query.gte("transaction_date", filters.fromDate);
     }
     if (filters.toDate) {
       query = query.lte("transaction_date", filters.toDate);
+    }
+    if (typeof filters.minAmountCents === "number") {
+      query = query.gte("amount_cents", filters.minAmountCents);
+    }
+    if (typeof filters.maxAmountCents === "number") {
+      query = query.lte("amount_cents", filters.maxAmountCents);
     }
 
     const limit = Math.min(filters.limit ?? 50, 100);
